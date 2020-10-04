@@ -23,7 +23,18 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_launcher_icons: "0.7.3" # To generate icons: flutter pub run flutter_launcher_icons:main
+  basic_utils: ^2.6.3
+  font_awesome_flutter: ^8.8.1
+  # device_preview: ^0.4.7  # Currently issues with frame painter: https://github.com/aloisdeniel/flutter_device_preview/issues/39
+  responsive_builder: ^0.3.0
+  simple_animations: ^2.2.2
+  get_it: ^5.0.1
 
+flutter_icons:
+  android: "launcher_icon"
+  ios: true`
+  image_path: "assets/icon/icon.png"
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
