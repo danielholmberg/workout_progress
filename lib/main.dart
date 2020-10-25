@@ -1,39 +1,74 @@
+import 'package:adaptive_theme/adaptive_theme.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:template_flutter/pages/home/home_view.dart';
+import 'package:provider/provider.dart';
+import 'package:stacked_services/stacked_services.dart';
+import 'package:workout_progress/services/firebase/auth.dart';
 
 import 'locator.dart';
+import 'pages/auth/auth_view.dart';
+import 'router.dart';
+import 'shared/dialogs.dart';
+import 'shared/snackbar.dart';
+import 'shared/theme.dart';
 
-void main() { 
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final AdaptiveThemeMode savedThemeMode = await AdaptiveTheme.getThemeMode();
   setUpLocator(); // get_it
+  setUpCustomDialogUI(savedThemeMode);
+  setUpCustomSnackbarUI();
   runApp(
-    Root(),
+    Main(savedThemeMode: savedThemeMode),
     /* 
-    // See pubspec.yaml for mor info.
-    DevicePreview(
-      enabled: !kReleaseMode,
-      builder: (context) => MyApp(),
-    ),
-    */
+      // See pubspec.yaml for mor info.
+      DevicePreview(
+        enabled: !kReleaseMode,
+        builder: (context) => MyApp(),
+      ),
+      */
   );
 }
 
-class Root extends StatelessWidget {
+class Main extends StatelessWidget {
+  final AdaptiveThemeMode savedThemeMode;
+  Main({this.savedThemeMode});
+
+  final Future<FirebaseApp> _initialization = Firebase.initializeApp();
+
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Template: Flutter',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        brightness: Brightness.light,
-        // This makes the visual density adapt to the platform that you run
-        // the app on. For desktop platforms, the controls will be smaller and
-        // closer together (more dense) than on mobile platforms.
-        visualDensity: VisualDensity.adaptivePlatformDensity,
+    return AdaptiveTheme(
+      light: lightTheme,
+      dark: darkTheme,
+      initial: savedThemeMode ?? AdaptiveThemeMode.light,
+      builder: (theme, darkTheme) => MaterialApp(
+        debugShowCheckedModeBanner: false,
+        title: 'Workout Progress',
+        theme: theme,
+        darkTheme: darkTheme,
+        navigatorKey: locator<NavigationService>().navigatorKey,
+        onGenerateRoute: Router.generateRoute,
+        initialRoute: Router.authRoute,
+        //locale: DevicePreview.of(context).locale,
+        //builder: DevicePreview.appBuilder,
+        home: FutureBuilder(
+          future: _initialization,
+          builder: (context, snapshot) {
+            // Once complete, show your application
+            if (snapshot.connectionState == ConnectionState.done) {
+              return StreamProvider(
+                create: (context) => locator<FirebaseAuthService>().user,
+                child: AuthView(),
+              );
+            }
+
+            // Otherwise, show something whilst waiting for initialization to complete
+            //return Loading();
+            return CircularProgressIndicator();
+          },
+        ),
       ),
-      //locale: DevicePreview.of(context).locale,
-      //builder: DevicePreview.appBuilder,
-      home: HomeView(),
     );
   }
 }

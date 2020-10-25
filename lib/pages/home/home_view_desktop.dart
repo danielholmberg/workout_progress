@@ -5,10 +5,11 @@ class _HomeViewDesktop extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: Colors.indigo,
-      child: Center(
-        child: Text('[Desktop] A template Flutter project'),
+    return Scaffold(
+      body: Container(
+        child: Center(
+          child: Text('[Desktop] A template Flutter project'),
+        ),
       ),
     );
   }

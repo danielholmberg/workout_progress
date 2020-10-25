@@ -1,4 +1,4 @@
-package com.example.template_flutter
+package dev.danielholmberg.workout_progress
 
 import io.flutter.embedding.android.FlutterActivity
 

@@ -1,6 +1,6 @@
 {
-    "name": "template_flutter",
-    "short_name": "template_flutter",
+    "name": "workout_progress",
+    "short_name": "workout_progress",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

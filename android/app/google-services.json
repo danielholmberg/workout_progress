@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "365343141427",
+    "firebase_url": "https://workoutprogress-1a72f.firebaseio.com",
+    "project_id": "workoutprogress-1a72f",
+    "storage_bucket": "workoutprogress-1a72f.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:365343141427:android:41327ebe44135e065abd46",
+        "android_client_info": {
+          "package_name": "dev.danielholmberg.workout_progress"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "365343141427-cb3vls9qh8pe2jo21vv92cablj3jjd2k.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCK9qAzeH_XMelqYAYPtOIX41CqpxEw-CE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "365343141427-cb3vls9qh8pe2jo21vv92cablj3jjd2k.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
