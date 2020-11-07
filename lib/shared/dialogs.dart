@@ -1,57 +1,56 @@
-import 'package:adaptive_theme/src/adaptive_theme_mode.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:stacked_services/stacked_services.dart';
+import 'package:workout_progress/shared/constants.dart';
 import 'package:workout_progress/shared/theme.dart';
 import 'package:workout_progress/shared/widgets/custom_awesome_icon.dart';
 
 import '../locator.dart';
+import 'extensions.dart';
 
 enum DialogType {
-  Basic,
-  Confirm,
-  Retry,
+  BASIC_LIGHT,
+  CONFIRM_LIGHT,
+  RETRY_LIGHT,
+  INFO_LIGHT,
+
+  BASIC_DARK,
+  CONFIRM_DARK,
+  RETRY_DARK,
+  INFO_DARK,
 }
 
-setUpCustomDialogUI(AdaptiveThemeMode savedThemeMode) {
+setUpCustomDialogUI() {
   DialogService dialogService = locator<DialogService>();
-  ThemeData themeData = savedThemeMode.isDark ? darkTheme : lightTheme;
 
-  // Retry Dialog
-  dialogService.registerCustomDialogBuilder(
-    variant: DialogType.Retry,
-    builder: (BuildContext context, DialogRequest dialogRequest) => Dialog(
+  _buildRetryDialog(DialogRequest dialogRequest, bool isDark) {
+    ThemeData theme = isDark ? darkTheme : lightTheme;
+    return Dialog(
+      backgroundColor: theme.backgroundColor,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+      ),
       child: Container(
         padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(10),
-        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
             Text(
-              dialogRequest.title,
+              dialogRequest.title ?? '',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 23,
               ),
-            ),
-            SizedBox(
-              height: 10,
-            ),
+            ).withPadding(const EdgeInsets.only(bottom: 10)),
             Text(
-              dialogRequest.description,
+              dialogRequest.description ?? '',
               style: TextStyle(
                 fontSize: 18,
               ),
               textAlign: TextAlign.center,
-            ),
-            SizedBox(
-              height: 20,
-            ),
+            ).withPadding(const EdgeInsets.only(bottom: 20)),
             GestureDetector(
               // Complete the dialog when you're done with it to return some data
               onTap: () => dialogService.completeDialog(
@@ -61,7 +60,7 @@ setUpCustomDialogUI(AdaptiveThemeMode savedThemeMode) {
                 alignment: Alignment.center,
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: themeData.buttonColor,
+                  color: theme.buttonColor,
                   borderRadius: BorderRadius.circular(5),
                 ),
                 child: Row(
@@ -69,18 +68,12 @@ setUpCustomDialogUI(AdaptiveThemeMode savedThemeMode) {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Visibility(
-                        visible: dialogRequest.showIconInMainButton,
-                        child: CustomAwesomeIcon(
-                            icon: FontAwesomeIcons.redoAlt)),
-                    Visibility(
-                        visible: dialogRequest.showIconInMainButton,
-                        child: SizedBox(
-                          width: 12,
-                        )),
+                    CustomAwesomeIcon(icon: FontAwesomeIcons.redoAlt)
+                        .withPadding(const EdgeInsets.only(right: 12))
+                        .isVisible(dialogRequest.showIconInMainButton),
                     Text(
-                      dialogRequest.mainButtonTitle,
-                      style: themeData.textTheme.button,
+                      dialogRequest.mainButtonTitle ?? 'Retry',
+                      style: theme.textTheme.button,
                     ),
                   ],
                 ),
@@ -89,13 +82,198 @@ setUpCustomDialogUI(AdaptiveThemeMode savedThemeMode) {
           ],
         ),
       ),
-    ),
+    );
+  }
+
+  _buildConfirmDialog(DialogRequest dialogRequest, bool isDark) {
+    ThemeData theme = isDark ? darkTheme : lightTheme;
+    return Dialog(
+      backgroundColor: theme.backgroundColor,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Text(
+              dialogRequest.title ?? '',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 23,
+              ),
+            ).withPadding(const EdgeInsets.only(bottom: 10)),
+            Text(
+              dialogRequest.description ?? '',
+              style: TextStyle(
+                fontSize: 18,
+              ),
+              textAlign: TextAlign.center,
+            ).withPadding(const EdgeInsets.only(bottom: 20)),
+            ButtonBar(
+              alignment: MainAxisAlignment.center,
+              children: [
+                GestureDetector(
+                  onTap: () => dialogService.completeDialog(
+                    DialogResponse(confirmed: false),
+                  ),
+                  child: Container(
+                    alignment: Alignment.center,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: declineButtonColor,
+                      borderRadius: BorderRadius.circular(5),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        CustomAwesomeIcon(icon: FontAwesomeIcons.times)
+                            .withPadding(const EdgeInsets.only(right: 12))
+                            .isVisible(dialogRequest.showIconInSecondaryButton),
+                        Text(
+                          dialogRequest.secondaryButtonTitle ?? 'Cancel',
+                          style: theme.textTheme.button,
+                        ),
+                      ],
+                    ),
+                  ),
+                ).isVisible(dialogRequest.secondaryButtonTitle.isNotEmpty),
+                GestureDetector(
+                  // Complete the dialog when you're done with it to return some data
+                  onTap: () => dialogService.completeDialog(
+                    DialogResponse(confirmed: true),
+                  ),
+                  child: Container(
+                    alignment: Alignment.center,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: confirmButtonColor,
+                      borderRadius: BorderRadius.circular(5),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        CustomAwesomeIcon(
+                          icon: FontAwesomeIcons.check,
+                        )
+                            .withPadding(const EdgeInsets.only(right: 12))
+                            .isVisible(dialogRequest.showIconInMainButton),
+                        Text(
+                          dialogRequest.mainButtonTitle ?? 'OK',
+                          style: theme.textTheme.button,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  _buildInfoDialog(DialogRequest dialogRequest, bool isDark) {
+    ThemeData theme = isDark ? darkTheme : lightTheme;
+    return Dialog(
+      backgroundColor: theme.backgroundColor,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Text(
+              dialogRequest.title ?? '',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 23,
+              ),
+            ).withPadding(const EdgeInsets.only(bottom: 10)),
+            Text(
+              dialogRequest.description ?? '',
+              style: TextStyle(
+                fontSize: 18,
+              ),
+              textAlign: TextAlign.center,
+            ).withPadding(const EdgeInsets.only(bottom: 20)),
+            GestureDetector(
+              // Complete the dialog when you're done with it to return some data
+              onTap: () => dialogService.completeDialog(
+                DialogResponse(confirmed: true),
+              ),
+              child: Container(
+                alignment: Alignment.center,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: theme.buttonColor,
+                  borderRadius: BorderRadius.circular(5),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    CustomAwesomeIcon(icon: FontAwesomeIcons.redoAlt)
+                        .withPadding(const EdgeInsets.only(right: 12))
+                        .isVisible(dialogRequest.showIconInMainButton),
+                    Text(
+                      dialogRequest.mainButtonTitle ?? 'OK',
+                      style: theme.textTheme.button,
+                    ),
+                  ],
+                ),
+              ),
+            )
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Retry Dialog
+  dialogService.registerCustomDialogBuilder(
+    variant: DialogType.RETRY_LIGHT,
+    builder: (BuildContext context, DialogRequest dialogRequest) =>
+        _buildRetryDialog(dialogRequest, false),
+  );
+  dialogService.registerCustomDialogBuilder(
+    variant: DialogType.RETRY_DARK,
+    builder: (BuildContext context, DialogRequest dialogRequest) =>
+        _buildRetryDialog(dialogRequest, true),
   );
 
-  /* dialogService.registerCustomDialogBuilder(
-    variant: DialogType.Confirm,
-    builder: (BuildContext context, DialogRequest dialogRequest) => Dialog(
-      child: // Build your UI here //
-    ),
-  ); */
+  // Confrim Dialog
+  dialogService.registerCustomDialogBuilder(
+    variant: DialogType.CONFIRM_LIGHT,
+    builder: (BuildContext context, DialogRequest dialogRequest) =>
+        _buildConfirmDialog(dialogRequest, false),
+  );
+  dialogService.registerCustomDialogBuilder(
+    variant: DialogType.CONFIRM_DARK,
+    builder: (BuildContext context, DialogRequest dialogRequest) =>
+        _buildConfirmDialog(dialogRequest, true),
+  );
+
+  // Info Dialog
+  dialogService.registerCustomDialogBuilder(
+    variant: DialogType.INFO_LIGHT,
+    builder: (BuildContext context, DialogRequest dialogRequest) =>
+        _buildInfoDialog(dialogRequest, false),
+  );
+  dialogService.registerCustomDialogBuilder(
+    variant: DialogType.INFO_DARK,
+    builder: (BuildContext context, DialogRequest dialogRequest) =>
+        _buildInfoDialog(dialogRequest, true),
+  );
 }

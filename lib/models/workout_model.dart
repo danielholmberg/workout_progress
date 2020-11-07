@@ -1,32 +1,36 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
 
-class Workout extends Equatable {
+class Workout {
   final String id;
-  final String name;
+  String name;
   final List<String> exercises;
-  final Timestamp startTimeAndDate;
-  final int duration;
-  final int actualDuration;
-  final double totalVolume;
+  Timestamp startTimeAndDate;
+  int duration;
+  double totalVolume;
   final Timestamp created;
+
+  static const String idKey = 'id';
+  static const String nameKey = 'name';
+  static const String exercisesKey = 'exercises';
+  static const String startTimeAndDateKey = 'startTimeAndDate';
+  static const String durationKey = 'duration';
+  static const String totalVolumeKey = 'totalVolume';
+  static const String createdKey = 'created';
 
   Workout({
     @required this.id,
     @required this.name,
     @required this.exercises,
     @required this.startTimeAndDate,
-    @required this.duration,
-    @required this.actualDuration,
-    @required this.totalVolume,
+    this.duration,
+    this.totalVolume,
     @required this.created,
   });
 
   factory Workout.fromSnapshot(DocumentSnapshot doc) {
-    print(doc);
-    var startTimeAndDate = doc.data()['startTimeAndDate'];
-    var created = doc.data()['created'];
+    var startTimeAndDate = doc.data()[startTimeAndDateKey];
+    var created = doc.data()[createdKey];
 
     if (startTimeAndDate.runtimeType == int) {
       startTimeAndDate = Timestamp.fromMillisecondsSinceEpoch(startTimeAndDate);
@@ -36,29 +40,47 @@ class Workout extends Equatable {
     }
 
     return Workout(
-      id: doc.data()['id'],
-      name: doc.data()['name'],
-      exercises: List.from(doc.data()['exercises'] ?? []),
-      startTimeAndDate: startTimeAndDate,
-      duration: doc.data()['duration'] ?? 0,
-      actualDuration: doc.data()['actualDuration'] ?? 0,
-      totalVolume: doc.data()['totalVolume'] ?? 0.0,
-      created: created,
+      id: doc.data()[idKey] ?? doc.id,
+      name: doc.data()[nameKey] ?? '',
+      exercises: List.from(doc.data()[exercisesKey] ?? []),
+      startTimeAndDate: startTimeAndDate ?? Timestamp(0, 0),
+      duration: doc.data()[durationKey] ?? 0,
+      totalVolume: doc.data()[totalVolumeKey] ?? 0.0,
+      created: created ?? Timestamp(0, 0),
     );
   }
 
-  @override
-  List<Object> get props => [
-        id,
-        name,
-        exercises,
-        startTimeAndDate,
-        duration,
-        actualDuration,
-        totalVolume,
-        created,
-      ];
+  factory Workout.emptyWorkout(String id) {
+    return Workout(
+      id: id,
+      name: '',
+      exercises: List.from([]),
+      startTimeAndDate: Timestamp(0, 0),
+      duration: 0,
+      totalVolume: 0.0,
+      created: Timestamp(0, 0),
+    );
+  }
+
+  int get currentTime => this.duration;
+  void setCurrentTime(int duration) => this.duration = duration;
+
+  void setName(String newName) => this.name = newName;
+
+  Map<String, dynamic> toDocument() {
+    return {
+      idKey: id,
+      nameKey: name,
+      exercisesKey: exercises,
+      startTimeAndDateKey: startTimeAndDate,
+      durationKey: duration,
+      totalVolumeKey: totalVolume,
+      createdKey: created,
+    };
+  }
 
   @override
-  bool get stringify => true;
+  String toString() {
+    return toDocument().toString();
+  }
 }

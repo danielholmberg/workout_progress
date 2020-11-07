@@ -2,7 +2,12 @@ part of 'workout_view.dart';
 
 class _WorkoutViewDesktop extends StatelessWidget {
   final Workout workout;
-  const _WorkoutViewDesktop({Key key, this.workout}) : super(key: key);
+  final StopWatchTimer stopWatch;
+  const _WorkoutViewDesktop({
+    Key key,
+    this.workout,
+    this.stopWatch,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

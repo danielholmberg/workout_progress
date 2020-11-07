@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:responsive_builder/responsive_builder.dart';
 import 'package:stacked_services/stacked_services.dart';
+import 'package:workout_progress/shared/dialogs.dart';
 import 'package:workout_progress/shared/widgets/custom_awesome_icon.dart';
 
 import '../../locator.dart';

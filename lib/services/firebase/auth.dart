@@ -13,9 +13,26 @@ import '../../locator.dart';
 class FirebaseAuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn();
-  
+
   MyUser currentUser;
   Widget currentUserAvatar;
+
+  _buildPlaceholderAvatar(User user) {
+    final List<String> placeholderCharSources = <String>[
+      user.displayName,
+      user.email,
+      '-',
+    ];
+    final String placeholderChar = placeholderCharSources
+        .firstWhere((String str) => str != null && str.trimLeft().isNotEmpty)
+        .trimLeft()[0]
+        .toUpperCase();
+    return CircleAvatar(
+      child: Center(
+        child: Text(placeholderChar, textAlign: TextAlign.center),
+      ),
+    );
+  }
 
   MyUser setCurrentUser(User user) {
     if (user == null) return null;
@@ -29,12 +46,14 @@ class FirebaseAuthService {
 
   Stream<MyUser> get user => _auth.authStateChanges().map((User user) {
         if (user == null) return null;
-        currentUserAvatar = _googleSignIn.currentUser != null ? GoogleUserCircleAvatar(identity: _googleSignIn.currentUser) : CircleAvatar();
+        currentUserAvatar = _googleSignIn.currentUser != null
+            ? GoogleUserCircleAvatar(identity: _googleSignIn.currentUser)
+            : _buildPlaceholderAvatar(user);
         return setCurrentUser(user);
       });
 
   Future signInWithGoogle() async {
-    if(await _googleSignIn.isSignedIn()) await _googleSignIn.disconnect();
+    if (await _googleSignIn.isSignedIn()) await _googleSignIn.disconnect();
 
     try {
       GoogleSignInAccount signedInAccount =
@@ -82,9 +101,10 @@ class FirebaseAuthService {
     } on PlatformException catch (error) {
       print('Error signing in with Google: $error');
 
-      if(error.code == 'network_error') {
-        DialogResponse response = await locator<DialogService>().showCustomDialog(
-          variant: DialogType.Retry,
+      if (error.code == 'network_error') {
+        DialogResponse response =
+            await locator<DialogService>().showCustomDialog(
+          variant: DialogType.RETRY_LIGHT,
           title: 'No internet access',
           description: 'Google sign in failed due to no internet access.',
           barrierDismissible: true,
@@ -92,7 +112,7 @@ class FirebaseAuthService {
           mainButtonTitle: 'Retry',
         );
 
-        if(response != null && response.confirmed) await signInWithGoogle();
+        if (response != null && response.confirmed) await signInWithGoogle();
       }
     }
   }

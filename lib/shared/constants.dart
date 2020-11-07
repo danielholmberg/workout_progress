@@ -10,33 +10,40 @@ const buttonIconColorLight = Colors.white;
 const buttonTextColorLight = Colors.white;
 const titleTextColorLight = Colors.blue;
 const captionTextColorLight = Colors.grey;
-const snackbarBackgroundColorLight = primaryColorLight;
-const snackbarContentTextColorLight = Colors.white;
-const snackbarActionTextColorLight = Colors.white;
-const snackbarBorderColorLight = Colors.white;
+const snackbarBackgroundColorLight = backgroundColorLight;
+const snackbarContentTextColorLight = titleTextColorLight;
+const snackbarActionTextColorLight = primaryColorLight;
+const snackbarBorderColorLight = primaryColorLight;
 
 // Dark Theme
 const primaryColorDark = Colors.blueGrey;
 const primarySwatchDark = Colors.blueGrey;
-const backgroundColorDark = Color(0xFF121212);
+const backgroundColorDark = Color(0xFF242424);
 const buttonTextColorDark = Colors.white;
 const titleTextColorDark = Colors.blueGrey;
 const captionTextColorDark = Colors.grey;
-const snackbarBackgroundColorDark = primaryColorDark;
-const snackbarContentTextColorDark = Colors.white;
-const snackbarActionTextColorDark = Colors.white; 
-const snackbarBorderColorDark = Colors.white;
+const snackbarBackgroundColorDark = backgroundColorDark;
+const snackbarContentTextColorDark = titleTextColorDark;
+const snackbarActionTextColorDark = buttonTextColorDark; 
+const snackbarBorderColorDark = primaryColorDark;
+
+// Shared
+const confirmButtonColor = Colors.green;
+const declineButtonColor = Colors.red;
 
 // Dimension
 const defaultPadding = 10.0;
-const defaultIconSize = 24.0;
+const defaultIconSize = 20.0;
 const smallSpacing = 8.0;
 const defaultButtonHeight = 50.0;
+const progressIndicatorFactor = 0.02;
 
 // FontSize
 const titleFontSize = 36.0;
 const pageTitleFontSize = 30.0;
 const buttonFontSize = 14.0;
+const captionFontSize = 24.0;
+const exerciseNameFontSize = 20.0;
 
 const greetings = [
   'Hello',

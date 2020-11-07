@@ -7,10 +7,14 @@ ThemeData lightTheme = ThemeData(
   fontFamily: 'Dosis',
   brightness: Brightness.light,
   visualDensity: VisualDensity.adaptivePlatformDensity,
+  primaryColor: primaryColorLight,
   primarySwatch: primarySwatchLight,
   backgroundColor: backgroundColorLight,
   accentColor: Colors.white,
   buttonColor: primaryColorLight,
+  iconTheme: IconThemeData(
+    color: primaryColorLight,
+  ),
   textTheme: TextTheme(
     headline1: TextStyle(
       color: titleTextColorLight,
@@ -22,10 +26,15 @@ ThemeData lightTheme = ThemeData(
       fontWeight: FontWeight.w700,
       fontSize: pageTitleFontSize,
     ),
+    headline3: TextStyle(
+      color: titleTextColorLight,
+      fontWeight: FontWeight.w700,
+      fontSize: exerciseNameFontSize,
+    ),
     caption: TextStyle(
       color: captionTextColorLight,
       fontWeight: FontWeight.bold,
-      fontSize: 24.0,
+      fontSize: captionFontSize,
     ),
     button: TextStyle(
       color: buttonTextColorLight,
@@ -46,10 +55,14 @@ ThemeData darkTheme = ThemeData(
   fontFamily: 'Dosis',
   brightness: Brightness.dark,
   visualDensity: VisualDensity.adaptivePlatformDensity,
-  primarySwatch: primaryColorDark,
+  primaryColor: primaryColorDark,
+  primarySwatch: primarySwatchDark,
   backgroundColor: backgroundColorDark,
   accentColor: Colors.white,
   buttonColor: primaryColorDark,
+  iconTheme: IconThemeData(
+    color: primaryColorDark,
+  ),
   textTheme: TextTheme(
     headline1: TextStyle(
       color: titleTextColorDark,
@@ -61,10 +74,15 @@ ThemeData darkTheme = ThemeData(
       fontWeight: FontWeight.w700,
       fontSize: pageTitleFontSize,
     ),
+    headline3: TextStyle(
+      color: titleTextColorDark,
+      fontWeight: FontWeight.w700,
+      fontSize: exerciseNameFontSize,
+    ),
     caption: TextStyle(
       color: captionTextColorDark,
       fontWeight: FontWeight.bold,
-      fontSize: 24.0,
+      fontSize: captionFontSize,
     ),
     button: TextStyle(
       color: buttonTextColorDark,

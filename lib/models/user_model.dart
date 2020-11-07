@@ -1,8 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
 
-class MyUser extends Equatable {
+class MyUser {
   final String id;
   final String name;
   final String email;
@@ -11,7 +10,17 @@ class MyUser extends Equatable {
   final double currentWeight;
   final String initialWorkoutId;
   final List<String> scheduledWorkouts;
-  final int numberOfWorkouts;
+  final List<String> completedWorkouts;
+
+  static const String idKey = 'id';
+  static const String nameKey = 'name';
+  static const String emailKey = 'email';
+  static const String photoUrlKey = 'photoUrl';
+  static const String initialWeightKey = 'initialWeight';
+  static const String currentWeightKey = 'currentWeight';
+  static const String initialWorkoutIdKey = 'initialWorkoutId';
+  static const String scheduledWorkoutsKey = 'scheduledWorkouts';
+  static const String completedWorkoutsKey = 'completedWorkouts';
 
   MyUser({
     @required this.id,
@@ -22,39 +31,35 @@ class MyUser extends Equatable {
     this.currentWeight,
     this.initialWorkoutId,
     this.scheduledWorkouts,
-    this.numberOfWorkouts,
+    this.completedWorkouts,
   });
 
   factory MyUser.fromSnapshot(DocumentSnapshot doc) {
     return MyUser(
-      id: doc['id'],
-      name: doc.data()['name'] ?? '',
-      email: doc.data()['email'] ?? '',
-      photoUrl: doc.data()['photoUrl'] ?? '',
-      initialWeight: doc.data()['initialWeight'] ?? 0.0,
-      currentWeight: doc.data()['currentWeight'] ?? 0.0,
-      initialWorkoutId: doc.data()['initialWorkoutId'],
-      scheduledWorkouts: List.from(doc.data()['sceduledWorkouts'] ?? []),
-      numberOfWorkouts: doc.data()['numberOfWorkouts'] ?? 0,
+      id: doc.data()[idKey] ?? doc.id,
+      name: doc.data()[nameKey] ?? '',
+      email: doc.data()[emailKey] ?? '',
+      photoUrl: doc.data()[photoUrlKey] ?? '',
+      initialWeight: doc.data()[initialWeightKey] ?? 0.0,
+      currentWeight: doc.data()[currentWeightKey] ?? 0.0,
+      initialWorkoutId: doc.data()[initialWorkoutIdKey] ?? '',
+      scheduledWorkouts: List.from(doc.data()[scheduledWorkoutsKey] ?? []),
+      completedWorkouts: List.from(doc.data()[completedWorkoutsKey] ?? []),
     );
   }
 
   String get firstName => name.trim().split(' ').first;
   String get lastName => name.trim().split(' ').last;
 
-  @override
-  List<Object> get props => [
-        id,
-        name,
-        email,
-        photoUrl,
-        initialWeight,
-        currentWeight,
-        initialWorkoutId,
-        scheduledWorkouts,
-        numberOfWorkouts,
-      ];
-
-  @override
-  bool get stringify => true;
+  Map<String, dynamic> toDocument() {
+    return {
+      idKey: id,
+      nameKey: name,
+      initialWeightKey: initialWeight,
+      currentWeightKey: currentWeight,
+      initialWorkoutIdKey: initialWorkoutId,
+      scheduledWorkoutsKey: scheduledWorkouts,
+      completedWorkoutsKey: completedWorkouts,
+    };
+  }
 }

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:workout_progress/shared/widgets/custom_awesome_icon.dart';
 
-extension ActionBarExtension on Widget {
-  addActionBar({Widget leading, Widget title, Widget subtitle, Widget trailing}) => Container(
+_buildActionBar(
+    {Widget leading, Widget title, Widget subtitle, Widget trailing}) {
+  return Container(
     height: kToolbarHeight,
     child: NavigationToolbar(
       leading: Padding(
@@ -15,4 +17,76 @@ extension ActionBarExtension on Widget {
       ),
     ),
   );
+}
+
+extension ActionBarWidgetExtension on Widget {
+  addActionBar({
+    Widget leading,
+    Widget title,
+    Widget subtitle,
+    Widget trailing,
+  }) {
+    return _buildActionBar(
+      leading: leading,
+      title: title,
+      subtitle: subtitle,
+      trailing: trailing,
+    );
+  }
+}
+
+extension ActionBarStateExtension on State {
+  addActionBar({
+    Widget leading,
+    Widget title,
+    Widget subtitle,
+    Widget trailing,
+  }) {
+    return _buildActionBar(
+      leading: leading,
+      title: title,
+      subtitle: subtitle,
+      trailing: trailing,
+    );
+  }
+}
+
+extension PaddedWidget on Widget {
+  Padding withPadding(EdgeInsets padding) {
+    return Padding(
+      padding: padding,
+      child: this,
+    );
+  }
+}
+
+extension VisibleWidget on Widget {
+  Visibility isVisible(bool visible) {
+    return Visibility(
+      visible: visible,
+      child: this,
+    );
+  }
+}
+
+extension LeadingIconWidget on Widget {
+  Widget withIcon(CustomAwesomeIcon icon) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        icon,
+        this.withPadding(const EdgeInsets.only(left: 4.0))
+      ]
+    );
+  }
+}
+
+extension DisabledWidget on Widget {
+  Widget isDisabled(bool disabled) {
+    return AbsorbPointer(
+      absorbing: disabled,
+      child: this,
+    );
+  }
 }

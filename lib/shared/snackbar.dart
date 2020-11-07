@@ -6,38 +6,59 @@ import 'package:workout_progress/shared/constants.dart';
 import '../locator.dart';
 import '../shared/theme.dart';
 
-enum SnackbarType { darkTop, lightTop }
+enum SnackbarType {
+  DARK_TOP,
+  LIGHT_TOP,
+  DARK_BOTTOM,
+  LIGHT_BOTTOM,
+}
 
 setUpCustomSnackbarUI() {
   SnackbarService snackbarService = locator<SnackbarService>();
 
-  snackbarService.registerCustomSnackbarConfig(
-    variant: SnackbarType.lightTop,
-    config: SnackbarConfig(
+  _topConfig(bool isDark) {
+    ThemeData theme = isDark ? darkTheme : lightTheme;
+    return SnackbarConfig(
       isDismissible: false,
-      backgroundColor: lightTheme.snackBarTheme.backgroundColor,
-      textColor: lightTheme.snackBarTheme.contentTextStyle.color,
-      mainButtonTextColor: lightTheme.snackBarTheme.actionTextColor,
+      backgroundColor: theme.snackBarTheme.backgroundColor,
+      textColor: theme.snackBarTheme.contentTextStyle.color,
+      mainButtonTextColor: theme.snackBarTheme.actionTextColor,
       borderWidth: 2.0,
-      borderColor: snackbarBorderColorLight,
-      snackPosition: SnackPosition.TOP,
-      borderRadius: 10.0,
-      margin: const EdgeInsets.all(16.0)
-    ),
-  );
-
-  snackbarService.registerCustomSnackbarConfig(
-    variant: SnackbarType.darkTop,
-    config: SnackbarConfig(
-      isDismissible: false,
-      backgroundColor: darkTheme.snackBarTheme.backgroundColor,
-      textColor: darkTheme.snackBarTheme.contentTextStyle.color,
-      mainButtonTextColor: darkTheme.snackBarTheme.actionTextColor,
-      borderWidth: 2.0,
-      borderColor: snackbarBorderColorDark,
+      borderColor: isDark ? snackbarBorderColorDark : snackbarBorderColorLight,
       snackPosition: SnackPosition.TOP,
       borderRadius: 10.0,
       margin: const EdgeInsets.all(16.0),
-    ),
+    );
+  }
+
+  _bottomConfig(bool isDark) {
+    ThemeData theme = isDark ? darkTheme : lightTheme;
+    return SnackbarConfig(
+      isDismissible: false,
+      backgroundColor: theme.snackBarTheme.backgroundColor,
+      textColor: theme.snackBarTheme.contentTextStyle.color,
+      mainButtonTextColor: theme.snackBarTheme.actionTextColor,
+      snackPosition: SnackPosition.BOTTOM,
+    );
+  }
+
+  snackbarService.registerCustomSnackbarConfig(
+    variant: SnackbarType.LIGHT_TOP,
+    config: _topConfig(false),
+  );
+
+  snackbarService.registerCustomSnackbarConfig(
+    variant: SnackbarType.DARK_TOP,
+    config: _topConfig(true),
+  );
+
+  snackbarService.registerCustomSnackbarConfig(
+    variant: SnackbarType.LIGHT_BOTTOM,
+    config: _bottomConfig(false),
+  );
+
+  snackbarService.registerCustomSnackbarConfig(
+    variant: SnackbarType.DARK_BOTTOM,
+    config: _bottomConfig(true),
   );
 }

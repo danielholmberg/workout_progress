@@ -16,7 +16,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final AdaptiveThemeMode savedThemeMode = await AdaptiveTheme.getThemeMode();
   setUpLocator(); // get_it
-  setUpCustomDialogUI(savedThemeMode);
+  setUpCustomDialogUI();
   setUpCustomSnackbarUI();
   runApp(
     Main(savedThemeMode: savedThemeMode),

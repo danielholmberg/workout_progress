@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
 
 enum MuscleType {
@@ -46,11 +45,16 @@ enum MuscleType {
   TERES_MAJOR,
 }
 
-class Muscle extends Equatable {
+class Muscle {
   final String id;
   final String name;
   final MuscleType type;
   final List<String> exercises;
+
+  static const String idKey = 'id';
+  static const String nameKey = 'name';
+  static const String typeKey = 'type';
+  static const String exercisesKey = 'exercises';
 
   Muscle({
     @required this.id,
@@ -61,21 +65,19 @@ class Muscle extends Equatable {
 
   factory Muscle.fromSnapshot(DocumentSnapshot doc) {
     return Muscle(
-      id: doc.data()['id'],
-      name: doc.data()['name'] ?? '',
-      type: doc.data()['type'] ?? MuscleType.NAM,
-      exercises: List.from(doc.data()['exercises'] ?? []),
+      id: doc.data()[idKey] ?? doc.id,
+      name: doc.data()[nameKey] ?? '',
+      type: doc.data()[typeKey] ?? MuscleType.NAM,
+      exercises: List.from(doc.data()[exercisesKey] ?? []),
     );
   }
 
-  @override
-  List<Object> get props => [
-        id,
-        name,
-        type,
-        exercises,
-      ];
-
-  @override
-  bool get stringify => true;
+  Map<String, dynamic> toDocument() {
+    return {
+      idKey: id,
+      nameKey: name,
+      typeKey: type,
+      exercisesKey: exercises,
+    };
+  }
 }
