@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
+import 'package:observable_ish/observable_ish.dart';
+import 'package:stacked/stacked.dart';
 import 'package:workout_progress/models/base_exercise_model.dart';
 import 'package:workout_progress/services/firebase/auth.dart';
 
@@ -10,136 +12,197 @@ import '../../models/exercise_model.dart';
 import '../../models/exercise_set_model.dart';
 import '../../models/workout_model.dart';
 
-class FirebaseFirestoreService extends ChangeNotifier {
+class FirebaseFirestoreService with ReactiveServiceMixin {
   final FirebaseAuthService authService = locator<FirebaseAuthService>();
 
-  final CollectionReference usersRef =
+  final CollectionReference _usersRef =
       FirebaseFirestore.instance.collection('users');
-  final CollectionReference baseExercisesRef =
+  final CollectionReference _baseExercisesRef =
       FirebaseFirestore.instance.collection('available_exercises');
 
-  StreamSubscription baseExercisesStreamSub;
-  StreamSubscription workoutsStreamSub;
-  StreamSubscription exercisesStreamSub;
-  StreamSubscription exerciseSetsStreamSub;
+  StreamSubscription _baseExercisesStreamSub;
+  StreamSubscription _workoutsStreamSub;
+  StreamSubscription _exercisesStreamSub;
+  StreamSubscription _exerciseSetsStreamSub;
 
-  final Map<String, BaseExercise> baseExercises =
-      new Map<String, BaseExercise>();
-  final Map<String, Workout> workouts = new Map<String, Workout>();
-  final Map<String, Exercise> exercises = new Map<String, Exercise>();
-  final Map<String, ExerciseSet> exerciseSets = new Map<String, ExerciseSet>();
+  final RxValue<Map<String, BaseExercise>> _baseExercises =
+      RxValue<Map<String, BaseExercise>>(initial: {});
+  final RxValue<Map<String, Workout>> _workouts =
+      RxValue<Map<String, Workout>>(initial: {});
+  final RxValue<Map<String, Exercise>> _exercises =
+      RxValue<Map<String, Exercise>>(initial: {});
+  final RxValue<Map<String, ExerciseSet>> _exerciseSets =
+      RxValue<Map<String, ExerciseSet>>(initial: {});
 
-  // User related
+  FirebaseFirestoreService() {
+    listenToReactiveValues([
+      _baseExercises,
+      _workouts,
+      _exercises,
+      _exerciseSets,
+    ]);
+  }
+
+  Map<String, BaseExercise> get baseExercises => _baseExercises.value;
+  Map<String, Workout> get workouts => _workouts.value;
+  Map<String, Exercise> get exercises => _exercises.value;
+  Map<String, ExerciseSet> get exerciseSets => _exerciseSets.value;
+
+  // User specific
   CollectionReference get workoutsRef =>
-      usersRef.doc(authService.currentUser.id).collection('workouts');
+      _usersRef.doc(authService.currentUser.id).collection('workouts');
   CollectionReference get exercisesRef =>
-      usersRef.doc(authService.currentUser.id).collection('exercises');
+      _usersRef.doc(authService.currentUser.id).collection('exercises');
   CollectionReference get setsRef =>
-      usersRef.doc(authService.currentUser.id).collection('sets');
+      _usersRef.doc(authService.currentUser.id).collection('sets');
   CollectionReference get musclesRef =>
-      usersRef.doc(authService.currentUser.id).collection('muscles');
+      _usersRef.doc(authService.currentUser.id).collection('muscles');
   CollectionReference get bodyPartsRef =>
-      usersRef.doc(authService.currentUser.id).collection('body_parts');
+      _usersRef.doc(authService.currentUser.id).collection('body_parts');
 
   String get newWorkoutId => workoutsRef.doc().id;
   String get newExerciseId => exercisesRef.doc().id;
   String get newExerciseSetId => setsRef.doc().id;
 
-  StreamSubscription get baseExercisesStream => this.baseExercisesStreamSub;
-  StreamSubscription get workoutsStream => this.workoutsStreamSub;
-  StreamSubscription get exercisesStream => this.exercisesStreamSub;
-  StreamSubscription get exerciseSetsStream => this.exerciseSetsStreamSub;
+  setUpListeners() {
+    print('Setting up Firestore listeners...');
+    _baseExercisesStreamSub = _baseExercisesRef
+        .orderBy(
+          BaseExercise.nameKey,
+        )
+        .snapshots()
+        .listen(
+      (event) {
+        event.docChanges.forEach(
+          (docChange) {
+            BaseExercise baseExercise =
+                BaseExercise.fromSnapshot(docChange.doc);
+            if (docChange.type == DocumentChangeType.removed) {
+              print(
+                  'Base Exercise (${baseExercise.id})[${baseExercise.name}] removed!');
+              if (baseExercises.containsKey(baseExercise.id)) {
+                baseExercises.remove(baseExercise.id);
+              }
+            } else {
+              if (docChange.type == DocumentChangeType.modified)
+                print(
+                    'Base Exercise (${baseExercise.id})[${baseExercise.name}] modified!');
+              if (docChange.type == DocumentChangeType.added)
+                print(
+                    'Base Exercise (${baseExercise.id})[${baseExercise.name}] added!');
 
-  cancelListeners() {
-    print('Cancelling listeners...');
-    baseExercisesStreamSub.cancel();
-    workoutsStreamSub.cancel();
-    exercisesStreamSub.cancel();
-    exerciseSetsStreamSub.cancel();
+              baseExercises.update(baseExercise.id, (be) => baseExercise,
+                  ifAbsent: () => baseExercise);
+            }
+            notifyListeners();
+          },
+        );
+      },
+    );
+
+    // Workouts
+    _workoutsStreamSub = workoutsRef
+        .orderBy(
+          Workout.createdKey,
+        )
+        .snapshots()
+        .listen(
+      (event) {
+        event.docChanges.forEach(
+          (docChange) {
+            Workout workout = Workout.fromSnapshot(docChange.doc);
+            if (docChange.type == DocumentChangeType.removed) {
+              print('Base Exercise (${workout.id})[${workout.name}] removed!');
+              if (workouts.containsKey(workout.id)) {
+                workouts.remove(workout.id);
+              }
+            } else {
+              if (docChange.type == DocumentChangeType.modified)
+                print('Workout (${workout.id})[${workout.name}] modified!');
+              if (docChange.type == DocumentChangeType.added)
+                print('Workout (${workout.id})[${workout.name}] added!');
+
+              workouts.update(workout.id, (w) => workout,
+                  ifAbsent: () => workout);
+            }
+            notifyListeners();
+          },
+        );
+      },
+    );
+
+    // Exercises
+    _exercisesStreamSub = exercisesRef
+        .orderBy(
+          Exercise.indexKey,
+        )
+        .snapshots()
+        .listen(
+      (event) {
+        event.docChanges.forEach(
+          (docChange) {
+            Exercise exercise = Exercise.fromSnapshot(docChange.doc);
+            if (docChange.type == DocumentChangeType.removed) {
+              print('Exercise (${exercise.id}) removed!');
+              if (exercises.containsKey(exercise.id)) {
+                exercises.remove(exercise.id);
+              }
+            } else {
+              if (docChange.type == DocumentChangeType.modified)
+                print('Exercise (${exercise.id}) modified!');
+              if (docChange.type == DocumentChangeType.added)
+                print('Exercise (${exercise.id}) added!');
+
+              exercises.update(exercise.id, (e) => exercise,
+                  ifAbsent: () => exercise);
+            }
+            notifyListeners();
+          },
+        );
+      },
+    );
+
+    // Exercise Sets
+    _exerciseSetsStreamSub = setsRef
+        .orderBy(
+          ExerciseSet.indexKey,
+        )
+        .snapshots()
+        .listen(
+      (event) {
+        event.docChanges.forEach(
+          (docChange) {
+            ExerciseSet exerciseSet = ExerciseSet.fromSnapshot(docChange.doc);
+            if (docChange.type == DocumentChangeType.removed) {
+              print('Exercise Set (${exerciseSet.id}) removed!');
+              if (exerciseSets.containsKey(exerciseSet.id)) {
+                exerciseSets.remove(exerciseSet.id);
+              }
+            } else {
+              if (docChange.type == DocumentChangeType.modified)
+                print(
+                    'Exercise Set (${exerciseSet.id})[${exerciseSet.exerciseId}] modified!');
+              if (docChange.type == DocumentChangeType.added)
+                print(
+                    'Exercise Set (${exerciseSet.id})[${exerciseSet.exerciseId}] added!');
+
+              exerciseSets.update(exerciseSet.id, (es) => exerciseSet,
+                  ifAbsent: () => exerciseSet);
+            }
+            notifyListeners();
+          },
+        );
+      },
+    );
     print('Success!');
   }
 
-  setUpListeners() {
-    print('Setting up listeners...');
-    baseExercisesStreamSub = baseExercisesRef.snapshots().listen((event) {
-      event.docChanges.forEach((docChange) {
-        BaseExercise baseExercise = BaseExercise.fromSnapshot(docChange.doc);
-        if (docChange.type == DocumentChangeType.removed) {
-          print('Base Exercise (${baseExercise.id})[${baseExercise.name}] removed!');
-          if (baseExercises.containsKey(baseExercise.id)) {
-            baseExercises.remove(baseExercise.id);
-          }
-        } else {
-          if (docChange.type == DocumentChangeType.modified)
-            print('Base Exercise (${baseExercise.id})[${baseExercise.name}] modified!');
-          if (docChange.type == DocumentChangeType.added)
-            print('Base Exercise (${baseExercise.id})[${baseExercise.name}] added!');
-
-          baseExercises.update(baseExercise.id, (be) => baseExercise,
-              ifAbsent: () => baseExercise);
-        }
-        notifyListeners();
-      });
-    });
-    workoutsStreamSub = workoutsRef.snapshots().listen((event) {
-      event.docChanges.forEach((docChange) {
-        Workout workout = Workout.fromSnapshot(docChange.doc);
-        if (docChange.type == DocumentChangeType.removed) {
-          print('Base Exercise (${workout.id})[${workout.name}] removed!');
-          if (workouts.containsKey(workout.id)) {
-            workouts.remove(workout.id);
-          }
-        } else {
-          if (docChange.type == DocumentChangeType.modified)
-            print('Workout (${workout.id})[${workout.name}] modified!');
-          if (docChange.type == DocumentChangeType.added)
-            print('Workout (${workout.id})[${workout.name}] added!');
-
-          workouts.update(workout.id, (w) => workout, ifAbsent: () => workout);
-        }
-        notifyListeners();
-      });
-    });
-    exercisesStreamSub = exercisesRef.snapshots().listen((event) {
-      event.docChanges.forEach((docChange) {
-        Exercise exercise = Exercise.fromSnapshot(docChange.doc);
-        if (docChange.type == DocumentChangeType.removed) {
-          print('Exercise (${exercise.id}) removed!');
-          if (exercises.containsKey(exercise.id)) {
-            exercises.remove(exercise.id);
-          }
-        } else {
-          if (docChange.type == DocumentChangeType.modified)
-            print('Exercise (${exercise.id}) modified!');
-          if (docChange.type == DocumentChangeType.added)
-            print('Exercise (${exercise.id}) added!');
-
-          exercises.update(exercise.id, (e) => exercise,
-              ifAbsent: () => exercise);
-        }
-        notifyListeners();
-      });
-    });
-    exerciseSetsStreamSub = setsRef.snapshots().listen((event) {
-      event.docChanges.forEach((docChange) {
-        ExerciseSet exerciseSet = ExerciseSet.fromSnapshot(docChange.doc);
-        if (docChange.type == DocumentChangeType.removed) {
-          print('Exercise Set (${exerciseSet.id}) removed!');
-          if (exerciseSets.containsKey(exerciseSet.id)) {
-            exerciseSets.remove(exerciseSet.id);
-          }
-        } else {
-          if (docChange.type == DocumentChangeType.modified)
-            print('Exercise Set (${exerciseSet.id})[${exerciseSet.exerciseId}] modified!');
-          if (docChange.type == DocumentChangeType.added)
-            print('Exercise Set (${exerciseSet.id})[${exerciseSet.exerciseId}] added!');
-            
-          exerciseSets.update(exerciseSet.id, (es) => exerciseSet,
-              ifAbsent: () => exerciseSet);
-        }
-        notifyListeners();
-      });
-    });
+  cancelListeners() {
+    print('Cancelling Firestore listeners...');
+    _baseExercisesStreamSub.cancel();
+    _workoutsStreamSub.cancel();
+    _exercisesStreamSub.cancel();
+    _exerciseSetsStreamSub.cancel();
     print('Success!');
   }
 
@@ -248,11 +311,11 @@ class FirebaseFirestoreService extends ChangeNotifier {
     @required String name,
     @required String email,
   }) =>
-      usersRef.doc(id).set(
+      _usersRef.doc(id).set(
           {'id': id, 'name': name, 'email': email}, SetOptions(merge: true));
 
   Future<bool> doesUserDocExist(String id) async {
-    DocumentSnapshot userDoc = await usersRef.doc(id).get();
+    DocumentSnapshot userDoc = await _usersRef.doc(id).get();
     return Future.value(userDoc.exists);
   }
 }

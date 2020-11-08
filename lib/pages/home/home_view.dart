@@ -3,52 +3,40 @@ library home_page;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:provider/provider.dart';
 import 'package:responsive_builder/responsive_builder.dart';
-import 'package:stacked_services/stacked_services.dart';
-import 'package:workout_progress/services/firebase/firestore.dart';
+import 'package:stacked/stacked.dart';
+import 'package:stacked_hooks/stacked_hooks.dart';
+import 'package:workout_progress/pages/home/home_view_model.dart';
+import 'package:workout_progress/pages/home/widget/workout_list_view_model.dart';
 import 'package:workout_progress/shared/widgets/custom_awesome_icon.dart';
 
-import '../../locator.dart';
-import '../../pages/home/widget/workouts_list.dart';
-import '../../router.dart';
-import '../../services/firebase/auth.dart';
-import '../../services/util_service.dart';
 import '../../shared/constants.dart';
 import '../../shared/extensions.dart';
+import 'widget/workout_list_view.dart';
 
-part 'home_view_desktop.dart';
-part 'home_view_mobile.dart';
-part 'home_view_tablet.dart';
-part 'home_view_watch.dart';
+part 'home_view_[desktop].dart';
+part 'home_view_[mobile].dart';
+part 'home_view_[tablet].dart';
+part 'home_view_[watch].dart';
 
-class HomeView extends StatefulWidget {
+class HomeView extends StatelessWidget {
   const HomeView({Key key}) : super(key: key);
 
   @override
-  _HomeViewState createState() => _HomeViewState();
-}
-
-class _HomeViewState extends State<HomeView> {
-  final FirebaseFirestoreService dbService = locator<FirebaseFirestoreService>();
-
-  @override
-  void initState() {
-    dbService.setUpListeners();
-    super.initState();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => dbService,
-      child: ScreenTypeLayout.builder(
-        mobile: (BuildContext context) => _HomeViewMobile(),
-        tablet: (BuildContext context) => _HomeViewTablet(),
-        desktop: (BuildContext context) => _HomeViewDesktop(),
-        watch: (BuildContext context) => _HomeViewWatch(),
-      ),
+    return ViewModelBuilder.nonReactive(
+      viewModelBuilder: () => HomeViewModel(),
+      onModelReady: (model) => model.initialise(),
+      builder: (context, model, child) {
+        return ScreenTypeLayout.builder(
+          mobile: (BuildContext context) => _HomeViewMobile(),
+          tablet: (BuildContext context) => _HomeViewTablet(),
+          desktop: (BuildContext context) => _HomeViewDesktop(),
+          watch: (BuildContext context) => _HomeViewWatch(),
+        );
+      },
     );
   }
 }

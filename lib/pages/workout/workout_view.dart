@@ -9,7 +9,7 @@ import 'package:stacked_services/stacked_services.dart';
 import 'package:stop_watch_timer/stop_watch_timer.dart';
 import 'package:workout_progress/models/exercise_model.dart';
 import 'package:workout_progress/models/exercise_set_model.dart';
-import 'package:workout_progress/pages/workout/new_workout/widgets/exercise_item.dart';
+import 'package:workout_progress/pages/workout/new_workout/widgets/exercise_item_view.dart';
 import 'package:workout_progress/services/firebase/firestore.dart';
 import 'package:workout_progress/shared/dialogs.dart';
 
@@ -22,8 +22,8 @@ import '../../shared/extensions.dart';
 import '../../shared/snackbar.dart';
 import '../../shared/widgets/custom_awesome_icon.dart';
 
-part 'workout_view_desktop.dart';
-part 'workout_view_mobile.dart';
+part 'workout_view_[desktop].dart';
+part 'workout_view_[mobile].dart';
 
 class WorkoutView extends StatefulWidget {
   final Workout workout;

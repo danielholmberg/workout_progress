@@ -62,4 +62,9 @@ class MyUser {
       completedWorkoutsKey: completedWorkouts,
     };
   }
+
+  @override
+  String toString() {
+    return toDocument().toString();
+  }
 }

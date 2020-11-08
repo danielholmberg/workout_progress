@@ -1,9 +1,7 @@
 import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:stacked_services/stacked_services.dart';
-import 'package:workout_progress/services/firebase/auth.dart';
 
 import 'locator.dart';
 import 'pages/auth/auth_view.dart';
@@ -57,15 +55,11 @@ class Main extends StatelessWidget {
           builder: (context, snapshot) {
             // Once complete, show your application
             if (snapshot.connectionState == ConnectionState.done) {
-              return StreamProvider(
-                create: (context) => locator<FirebaseAuthService>().user,
-                child: AuthView(),
-              );
+              return AuthView();
             }
 
             // Otherwise, show something whilst waiting for initialization to complete
-            //return Loading();
-            return CircularProgressIndicator();
+            return Center(child: CircularProgressIndicator());
           },
         ),
       ),

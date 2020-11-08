@@ -15,8 +15,8 @@ import '../../services/util_service.dart';
 import '../../shared/constants.dart';
 import '../../shared/extensions.dart';
 
-part 'settings_view_desktop.dart';
-part 'settings_view_mobile.dart';
+part 'settings_view_[desktop].dart';
+part 'settings_view_[mobile].dart';
 
 class SettingsView extends StatelessWidget {
   const SettingsView({Key key}) : super(key: key);
