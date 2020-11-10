@@ -5,7 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:stacked/stacked.dart';
 import 'package:workout_progress/models/exercise_model.dart';
 import 'package:workout_progress/models/workout_model.dart';
-import 'package:workout_progress/pages/home/widget/workout_list_view_model.dart';
+import 'package:workout_progress/pages/home/widgets/workout_list_view_model.dart';
 import 'package:workout_progress/shared/constants.dart';
 import 'package:workout_progress/shared/widgets/custom_awesome_icon.dart';
 

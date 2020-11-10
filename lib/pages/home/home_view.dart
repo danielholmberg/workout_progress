@@ -9,12 +9,12 @@ import 'package:responsive_builder/responsive_builder.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_hooks/stacked_hooks.dart';
 import 'package:workout_progress/pages/home/home_view_model.dart';
-import 'package:workout_progress/pages/home/widget/workout_list_view_model.dart';
+import 'package:workout_progress/pages/home/widgets/workout_list_view_model.dart';
 import 'package:workout_progress/shared/widgets/custom_awesome_icon.dart';
 
 import '../../shared/constants.dart';
 import '../../shared/extensions.dart';
-import 'widget/workout_list_view.dart';
+import 'widgets/workout_list_view.dart';
 
 part 'home_view_[desktop].dart';
 part 'home_view_[mobile].dart';
