@@ -18,7 +18,7 @@ class WorkoutsViewModel extends ReactiveViewModel {
   String getDuration(int duration) => _utilService.getDisplayTime(duration);
 
   void navigateToWorkout(Workout workout) => _navigationsService.navigateTo(
-        Router.workoutRoute,
+        MyRouter.workoutRoute,
         arguments: workout,
       );
 

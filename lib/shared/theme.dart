@@ -12,6 +12,7 @@ ThemeData lightTheme = ThemeData(
   backgroundColor: backgroundColorLight,
   accentColor: Colors.white,
   buttonColor: primaryColorLight,
+  hintColor: primaryColorLight.withOpacity(0.5),
   iconTheme: IconThemeData(
     color: primaryColorLight,
   ),
@@ -60,6 +61,7 @@ ThemeData darkTheme = ThemeData(
   backgroundColor: backgroundColorDark,
   accentColor: Colors.white,
   buttonColor: primaryColorDark,
+  hintColor: primaryColorDark.withOpacity(0.5),
   iconTheme: IconThemeData(
     color: primaryColorDark,
   ),

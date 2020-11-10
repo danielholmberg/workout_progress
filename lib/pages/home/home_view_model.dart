@@ -19,9 +19,9 @@ class HomeViewModel extends ReactiveViewModel {
   void initialise() => _dbService.setUpListeners();
 
   void navigateToSettings() =>
-      _navigationService.navigateTo(Router.settingsRoute);
+      _navigationService.navigateTo(MyRouter.settingsRoute);
   void navigateToNewWorkout() =>
-      _navigationService.navigateTo(Router.newWorkoutRoute);
+      _navigationService.navigateTo(MyRouter.newWorkoutRoute);
 
   String get today => _utilService.today;
   String get greeting => _utilService.greeting;

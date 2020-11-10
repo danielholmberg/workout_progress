@@ -7,7 +7,7 @@ import 'pages/home/home_view.dart';
 import 'pages/settings/settings_view.dart';
 import 'pages/workout/workout_view.dart';
 
-class Router {
+class MyRouter {
 
   static const String authRoute = '/';
   static const String homeRoute = 'home';

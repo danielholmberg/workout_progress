@@ -46,8 +46,8 @@ class Main extends StatelessWidget {
         theme: theme,
         darkTheme: darkTheme,
         navigatorKey: locator<NavigationService>().navigatorKey,
-        onGenerateRoute: Router.generateRoute,
-        initialRoute: Router.authRoute,
+        onGenerateRoute: MyRouter.generateRoute,
+        initialRoute: MyRouter.authRoute,
         //locale: DevicePreview.of(context).locale,
         //builder: DevicePreview.appBuilder,
         home: FutureBuilder(
