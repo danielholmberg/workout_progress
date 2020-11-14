@@ -103,6 +103,8 @@ class NewWorkoutViewModel extends ReactiveViewModel {
   }
 
   void onDonePress() async {
+    setBusy(true);
+
     bool invalidWorkoutName = _newWorkout.name.trim().isEmpty;
     if (invalidWorkoutName) {
       await _dialogService.showCustomDialog(

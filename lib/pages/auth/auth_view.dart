@@ -22,7 +22,7 @@ class AuthView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ViewModelBuilder.reactive(
+    return ViewModelBuilder<AuthViewModel>.reactive(
       viewModelBuilder: () => AuthViewModel(),
       onModelReady: (model) => model.initialise(),
       initialiseSpecialViewModelsOnce: true,

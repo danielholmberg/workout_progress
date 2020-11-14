@@ -1,76 +1,21 @@
 part of 'workout_view.dart';
 
-class _WorkoutViewMobile extends StatelessWidget {
-  final Workout workout;
-  final StopWatchTimer stopWatch;
-  final Function(Workout) saveWorkout;
-  final Function() deleteWorkout;
-  const _WorkoutViewMobile({
-    Key key,
-    this.workout,
-    this.stopWatch,
-    this.saveWorkout,
-    this.deleteWorkout,
-  }) : super(key: key);
+class _WorkoutViewMobile extends ViewModelWidget<WorkoutViewModel> {
+  const _WorkoutViewMobile({Key key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WorkoutViewModel model) {
     final ThemeData themeData = Theme.of(context);
-    final bool isDarkTheme = AdaptiveTheme.of(context).mode.isDark;
-
-    final FirebaseAuthService authService = locator<FirebaseAuthService>();
-    final FirebaseFirestoreService dbService =
-        locator<FirebaseFirestoreService>();
-    final NavigationService navigationService = locator<NavigationService>();
-    final SnackbarService snackbarService = locator<SnackbarService>();
-    final DialogService dialogService = locator<DialogService>();
-    final UtilService utilService = locator<UtilService>();
-
-    _saveWorkout() async {
-      stopWatch.onExecute.add(StopWatchExecute.stop);
-
-      await Future.forEach(
-        workout.exercises,
-        (exerciseId) async {
-          Exercise exercise = dbService.getExercise(exerciseId);
-          await dbService.saveExercise(exercise);
-
-          // Update existing exercise sets
-          await Future.forEach(exercise.sets, (exerciseSetId) async {
-            if (!exercise.setsToCreate.containsKey(exerciseSetId)) {
-              await dbService.saveExerciseSet(
-                dbService.getExerciseSet(exerciseSetId),
-              );
-            }
-          });
-
-          // Create added exercise sets
-          await Future.forEach(
-            exercise.setsToCreate.values,
-            (ExerciseSet exerciseSet) async {
-              await dbService.createExerciseSet(exerciseSet);
-            },
-          );
-        },
-      );
-      await saveWorkout(workout);
-    }
 
     _buildExerciseList() {
-      if (workout.exercises.length == 0) {
-        return Center(
-          child: Text(
-            "No exercises added to this workout!",
-          ),
-        );
-      } else {
+      if (model.hasExercises) {
         return ListView.separated(
           shrinkWrap: true,
-          itemCount: workout.exercises.length,
+          itemCount: model.exercisesCount,
           itemBuilder: (context, index) {
-            Exercise exercise = dbService.getExercise(workout.exercises[index]);
+            Exercise exercise = model.getExercise(index);
             return ExerciseItem(
-              baseExercise: dbService.getBaseExercise(exercise.baseExerciseId),
+              baseExercise: model.getBaseExercise(exercise.baseExerciseId),
               exercise: exercise,
               active: true,
             );
@@ -79,51 +24,48 @@ class _WorkoutViewMobile extends StatelessWidget {
             height: 2,
           ),
         );
+      } else {
+        return Center(
+          child: Text(
+            "No exercises added to this workout!",
+          ),
+        );
       }
     }
 
     _buildStopWatchActions() {
-      if (stopWatch.isRunning) {
+      if (model.isRunning) {
         return IconButton(
           icon: CustomAwesomeIcon(
             icon: FontAwesomeIcons.pause,
             color: themeData.accentColor,
           ),
-          onPressed: () {
-            stopWatch.onExecute.add(StopWatchExecute.stop);
-          },
+          onPressed: model.onPausePress,
         );
       } else {
         return Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            IconButton(
-              icon: CustomAwesomeIcon(
-                icon: FontAwesomeIcons.undo,
-                color: themeData.accentColor,
+            Visibility(
+              visible: !model.hasNotBeenStarted,
+              child: IconButton(
+                icon: CustomAwesomeIcon(
+                  icon: FontAwesomeIcons.undo,
+                  color: themeData.accentColor,
+                ),
+                onPressed: model.onRestartPress,
               ),
-              onPressed: () {
-                stopWatch.setPresetTime(mSec: 0);
-                stopWatch.onExecute.add(StopWatchExecute.reset);
-              },
             ),
             IconButton(
               icon: CustomAwesomeIcon(
                 icon: FontAwesomeIcons.play,
                 color: themeData.accentColor,
               ),
-              onPressed: () {
-                stopWatch.onExecute.add(StopWatchExecute.start);
-              },
+              onPressed: model.onStartPress,
             ),
           ],
         );
       }
-    }
-
-    _deleteWorkout() async {
-      await deleteWorkout();
-      navigationService.back();
     }
 
     _buildAppBar() {
@@ -132,7 +74,7 @@ class _WorkoutViewMobile extends StatelessWidget {
         backgroundColor: themeData.backgroundColor,
         centerTitle: true,
         title: Text(
-          workout.name,
+          model.workout.name,
           style: themeData.textTheme.headline2,
         ),
         actions: [
@@ -141,47 +83,10 @@ class _WorkoutViewMobile extends StatelessWidget {
               icon: FontAwesomeIcons.trash,
               color: themeData.buttonColor,
             ),
-            onPressed: () async {
-              DialogResponse result = await dialogService.showCustomDialog(
-                variant: AdaptiveTheme.of(context).mode.isDark
-                    ? DialogType.CONFIRM_DARK
-                    : DialogType.CONFIRM_LIGHT,
-                title: "Deleting workout",
-                description: "Are you sure you want to delete this workout?",
-                showIconInMainButton: true,
-                showIconInSecondaryButton: true,
-                mainButtonTitle: "Yes",
-                secondaryButtonTitle: "No",
-                barrierDismissible: true,
-              );
-
-              if (result.confirmed) {
-                await _deleteWorkout();
-              }
-            },
+            onPressed: model.onDeleteWorkoutPress,
           ),
         ],
       );
-    }
-
-    _handleOnBackPress({bool isActionButton}) async {
-      DialogResponse result = await dialogService.showCustomDialog(
-        variant:
-            isDarkTheme ? DialogType.CONFIRM_DARK : DialogType.CONFIRM_LIGHT,
-        title: 'Discard changes?',
-        description: 'Do you want to discard changes to this workout?',
-        mainButtonTitle: 'Stay',
-        secondaryButtonTitle: 'Discard',
-      );
-
-      if (!result.confirmed) {
-        if (isActionButton) {
-          navigationService.back();
-        }
-        return true;
-      } else {
-        return false;
-      }
     }
 
     _buildBottomBar() {
@@ -193,18 +98,18 @@ class _WorkoutViewMobile extends StatelessWidget {
               icon: FontAwesomeIcons.arrowLeft,
               color: themeData.buttonColor,
             ),
-            onPressed: () => _handleOnBackPress(isActionButton: true),
+            onPressed: () => model.onBackPress(isActionButton: true),
           ),
           title: StreamBuilder<int>(
-            initialData: stopWatch.rawTime.value,
-            stream: stopWatch.rawTime,
+            initialData: model.initialTime,
+            stream: model.stopWatchStream,
             builder: (context, snapshot) {
               int value = snapshot.data;
-              final displayTime = utilService.getDisplayTime(value);
+              final String displayTime = model.getDisplayTime(value);
               return Text(
                 displayTime,
                 style: themeData.textTheme.caption.copyWith(
-                  color: stopWatch.isRunning
+                  color: model.isRunning
                       ? themeData.primaryColor
                       : themeData.disabledColor,
                 ),
@@ -220,7 +125,7 @@ class _WorkoutViewMobile extends StatelessWidget {
                   icon: FontAwesomeIcons.check,
                   color: themeData.buttonColor,
                 ),
-                onPressed: () => _saveWorkout(),
+                onPressed: model.saveWorkout,
               ),
             ],
           ),
@@ -229,8 +134,8 @@ class _WorkoutViewMobile extends StatelessWidget {
     }
 
     return WillPopScope(
-      onWillPop: () => _handleOnBackPress(isActionButton: false),
-          child: Scaffold(
+      onWillPop: () => model.onBackPress(isActionButton: false),
+      child: Scaffold(
         appBar: _buildAppBar(),
         body: SafeArea(
           child: _buildExerciseList(),

@@ -74,7 +74,7 @@ class _HomeViewMobile extends HookViewModelWidget<HomeViewModel> {
                   ],
                 ),
               ),
-              ViewModelBuilder.reactive(
+              ViewModelBuilder<WorkoutsViewModel>.reactive(
                 viewModelBuilder: () => WorkoutsViewModel(),
                 builder: (context, model, child) {
                   return WorkoutList().withPadding(

@@ -20,14 +20,14 @@ class NewWorkoutView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ViewModelBuilder.reactive(
+    return ViewModelBuilder<NewWorkoutViewModel>.reactive(
       viewModelBuilder: () => NewWorkoutViewModel(),
       onModelReady: (model) => model.initialise(context),
       builder: (context, model, child) {
         return ScreenTypeLayout.builder(
           mobile: (BuildContext context) => _NewWorkoutViewMobile(),
           //desktop: (BuildContext context) => _NewWorkoutViewDesktop(),
-        );
+        ).isBusy(model.isBusy, Theme.of(context));
       },
     );
   }

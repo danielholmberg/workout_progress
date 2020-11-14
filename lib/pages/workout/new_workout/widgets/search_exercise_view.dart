@@ -39,7 +39,7 @@ class SearchExerciseView extends HookWidget {
       );
     }
 
-    return ViewModelBuilder.reactive(
+    return ViewModelBuilder<SearchExerciseViewModel>.reactive(
       viewModelBuilder: () => SearchExerciseViewModel(),
       onModelReady: (model) => model.initialise(
         searchController,

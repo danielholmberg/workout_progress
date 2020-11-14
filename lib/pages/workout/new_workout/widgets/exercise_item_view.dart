@@ -24,7 +24,7 @@ class ExerciseItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final ThemeData themeData = Theme.of(context);
 
-    return ViewModelBuilder.reactive(
+    return ViewModelBuilder<ExerciseItemViewModel>.reactive(
         viewModelBuilder: () => ExerciseItemViewModel(),
         onModelReady: (model) => model.initialise(exercise, active),
         builder: (context, model, child) {

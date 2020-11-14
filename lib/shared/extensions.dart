@@ -74,10 +74,7 @@ extension LeadingIconWidget on Widget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        icon,
-        this.withPadding(const EdgeInsets.only(left: 4.0))
-      ]
+      children: [icon, this.withPadding(const EdgeInsets.only(left: 4.0))],
     );
   }
 }
@@ -88,5 +85,22 @@ extension DisabledWidget on Widget {
       absorbing: disabled,
       child: this,
     );
+  }
+}
+
+extension BusyWidget on Widget {
+  Widget isBusy(bool isBusy, ThemeData theme) {
+    return isBusy
+        ? SizedBox.expand(
+          child: Container(
+            color: theme.backgroundColor,
+            child: Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(theme.primaryColor),
+              ),
+            ),
+          ),
+        )
+        : this;
   }
 }
