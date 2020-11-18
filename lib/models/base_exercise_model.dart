@@ -18,6 +18,8 @@ class BaseExercise {
   final bool custom;
   final Map<String, List<String>> tips;
   final String warning;
+  final double min;
+  final double max;
   bool isSelected;
 
   static const idKey = 'id';
@@ -28,6 +30,8 @@ class BaseExercise {
   static const customKey = 'custom';
   static const tipsKey = 'tips';
   static const warningKey = 'warning';
+  static const minKey = 'min';
+  static const maxKey = 'max';
 
   BaseExercise({
     @required this.id,
@@ -38,6 +42,8 @@ class BaseExercise {
     this.custom = false,
     this.tips,
     this.warning,
+    @required this.min,
+    @required this.max,
     this.isSelected = false,
   });
 
@@ -67,6 +73,8 @@ class BaseExercise {
       custom: doc.data()[customKey] ?? false,
       tips: Map.from(doc.data()[tipsKey] ?? {}),
       warning: doc.data()[warningKey] ?? '',
+      min: (doc.data()[minKey] ?? 0.0).toDouble(),
+      max: (doc.data()[maxKey] ?? 0.0).toDouble(),
     );
   }
 
@@ -80,6 +88,8 @@ class BaseExercise {
       custom: false,
       tips: Map.from({}),
       warning: '',
+      min: 0.0,
+      max: 0.0,
     );
   }
 
@@ -93,6 +103,8 @@ class BaseExercise {
       customKey: custom,
       tipsKey: tips,
       warningKey: warning,
+      minKey: min,
+      maxKey: max,
     };
   }
 
@@ -122,6 +134,5 @@ class BaseExercise {
   void setSelected(bool selected) => this.isSelected = selected;
 
   void toggleSelected() => this.isSelected = !this.isSelected;
-
 
 }

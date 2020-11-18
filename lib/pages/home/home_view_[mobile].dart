@@ -7,8 +7,8 @@ class _HomeViewMobile extends HookViewModelWidget<HomeViewModel> {
   Widget buildViewModelWidget(BuildContext context, HomeViewModel model) {
     final ThemeData themeData = Theme.of(context);
 
-    final AnimationController _hideFabAnimation =
-        useAnimationController(duration: kThemeAnimationDuration, initialValue: 1.0);
+    final AnimationController _hideFabAnimation = useAnimationController(
+        duration: kThemeAnimationDuration, initialValue: 1.0);
 
     bool _handleScrollNotification(ScrollNotification notification) {
       if (notification.depth == 0) {
@@ -74,14 +74,17 @@ class _HomeViewMobile extends HookViewModelWidget<HomeViewModel> {
                   ],
                 ),
               ),
-              ViewModelBuilder<WorkoutsViewModel>.reactive(
-                viewModelBuilder: () => WorkoutsViewModel(),
-                builder: (context, model, child) {
-                  return WorkoutList().withPadding(
-                    const EdgeInsets.all(defaultPadding),
-                  );
-                }
+              Container(
+                height: MediaQuery.of(context).size.height * 0.4,
+                child: ProgressDashboardView(),
               ),
+              ViewModelBuilder<WorkoutsViewModel>.reactive(
+                  viewModelBuilder: () => WorkoutsViewModel(),
+                  builder: (context, model, child) {
+                    return WorkoutList().withPadding(
+                      const EdgeInsets.all(defaultPadding),
+                    );
+                  }),
             ],
           ),
         ),

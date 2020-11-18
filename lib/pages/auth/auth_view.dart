@@ -1,4 +1,4 @@
-library auth_page;
+library auth_view;
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';

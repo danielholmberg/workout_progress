@@ -5,7 +5,6 @@ import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:workout_progress/models/base_exercise_model.dart';
 import 'package:workout_progress/models/exercise_model.dart';
-import 'package:workout_progress/models/exercise_set_model.dart';
 import 'package:workout_progress/models/workout_model.dart';
 import 'package:workout_progress/services/firebase/auth.dart';
 import 'package:workout_progress/services/firebase/firestore.dart';
@@ -50,36 +49,40 @@ class NewWorkoutViewModel extends ReactiveViewModel {
     super.dispose();
   }
 
-  BaseExercise getAddedBaseExercise(int index) => _dbService.getBaseExercise(_addedExercises[index].baseExerciseId); 
+  BaseExercise getAddedBaseExercise(int index) =>
+      _dbService.getBaseExercise(_addedExercises[index].baseExerciseId);
   Exercise getAddedExercise(int index) => _addedExercises[index];
 
   Future addExercisesToWorkout(List<BaseExercise> selectedBaseExercises) async {
-    await Future.forEach(selectedBaseExercises, (
-      BaseExercise baseExercise,
-    ) async {
+    for (BaseExercise baseExercise in selectedBaseExercises) {
       Exercise exercise = Exercise.emptyExercise(
         _dbService.newExerciseId,
-        baseExerciseId: baseExercise.id,
+        selectedBaseExercises.indexOf(baseExercise),
+        _newWorkout.id,
+        baseExercise.id,
       );
 
-      if (!_addedExercises.contains(baseExercise)) {
-        _addedExercises.add(exercise);
-      }
+      // Add new Exercise to list
+      _addedExercises.add(exercise);
 
+      // Add new Exercise ID to Workout
       _newWorkout.exercises.add(exercise.id);
+
+      // De-select the BaseExercise we just created an Exercise from.
       baseExercise.setSelected(false);
-      notifyListeners();
-    });
+    }
+
+    notifyListeners();
   }
 
   removeSelectedExercises() async {
-    await Future.forEach(
-      _selectedExercises.keys.toList(),
-      (int index) {
-        _addedExercises.removeAt(index);
-      },
-    );
+    for (int index in _selectedExercises.keys) {
+      _addedExercises.removeAt(index);
+      _newWorkout.exercises.removeAt(index);
+    }
+
     _selectedExercises.clear();
+
     notifyListeners();
   }
 
@@ -103,8 +106,6 @@ class NewWorkoutViewModel extends ReactiveViewModel {
   }
 
   void onDonePress() async {
-    setBusy(true);
-
     bool invalidWorkoutName = _newWorkout.name.trim().isEmpty;
     if (invalidWorkoutName) {
       await _dialogService.showCustomDialog(
@@ -114,23 +115,12 @@ class NewWorkoutViewModel extends ReactiveViewModel {
       );
       _nameFocusNode.requestFocus();
     } else {
-      // Create all new exercises
-      await Future.forEach(
-        _addedExercises,
-        (Exercise exercise) async {
-          await _dbService.saveExercise(exercise);
+      setBusy(true);
 
-          // Create added exercise sets
-          await Future.forEach(
-            exercise.setsToCreate.values,
-            (ExerciseSet exerciseSet) async {
-              await _dbService.createExerciseSet(exerciseSet);
-            },
-          );
-        },
-      );
+      // Create all new Exercises
+      await _dbService.saveExercises(_addedExercises);
 
-      // Finally create workout
+      // Create Workout
       await _dbService.createWorkout(
         name: _newWorkout.name,
         exercises: _newWorkout.exercises,
@@ -151,6 +141,7 @@ class NewWorkoutViewModel extends ReactiveViewModel {
         _selectedExercises.remove(index);
       }
     }
+
     notifyListeners();
   }
 

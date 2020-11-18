@@ -39,6 +39,8 @@ class ExerciseItemViewModel extends ReactiveViewModel {
     ExerciseSet newSet = ExerciseSet.emptySet(
       dbService.newExerciseSetId,
       _exercise.id,
+      _exercise.baseExerciseId,
+      _exercise.workoutId,
       _existingExerciseSets.length + _addedExerciseSets.length,
     );
     _exercise.setsToCreate

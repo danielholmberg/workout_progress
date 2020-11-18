@@ -1,4 +1,4 @@
-library settings_page;
+library settings_view;
 
 import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:flutter/cupertino.dart';

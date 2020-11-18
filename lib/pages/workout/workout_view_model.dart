@@ -5,7 +5,6 @@ import 'package:stacked_services/stacked_services.dart';
 import 'package:stop_watch_timer/stop_watch_timer.dart';
 import 'package:workout_progress/models/base_exercise_model.dart';
 import 'package:workout_progress/models/exercise_model.dart';
-import 'package:workout_progress/models/exercise_set_model.dart';
 import 'package:workout_progress/models/workout_model.dart';
 import 'package:workout_progress/services/firebase/auth.dart';
 import 'package:workout_progress/services/firebase/firestore.dart';
@@ -55,36 +54,17 @@ class WorkoutViewModel extends ReactiveViewModel {
   bool get hasNotBeenStarted => _workout.currentTime.compareTo(0) == 0;
 
   saveWorkout() async {
+    setBusy(true);
     _stopWatch.onExecute.add(StopWatchExecute.stop);
-    notifyListeners();
 
-    await Future.forEach(
-      _workout.exercises,
-      (exerciseId) async {
-        Exercise exercise = _dbService.getExercise(exerciseId);
-        await _dbService.saveExercise(exercise);
-
-        // Update existing exercise sets
-        await Future.forEach(exercise.sets, (exerciseSetId) async {
-          if (!exercise.setsToCreate.containsKey(exerciseSetId)) {
-            await _dbService.saveExerciseSet(
-              _dbService.getExerciseSet(exerciseSetId),
-            );
-          }
-        });
-
-        // Create added exercise sets
-        await Future.forEach(
-          exercise.setsToCreate.values,
-          (ExerciseSet exerciseSet) async {
-            await _dbService.createExerciseSet(exerciseSet);
-            exercise.setsToCreate.remove(exerciseSet.id);
-          },
-        );
-      },
-    );
+    for(String exerciseId in _workout.exercises) {
+      Exercise exercise = _dbService.getExercise(exerciseId);
+      await _dbService.saveExercise(exercise);
+    }
 
     await _dbService.saveWorkout(_workout);
+
+    setBusy(false);
 
     _snackbarService.showCustomSnackBar(
       variant: isDarkTheme ? SnackbarType.DARK_TOP : SnackbarType.LIGHT_TOP,
@@ -107,8 +87,6 @@ class WorkoutViewModel extends ReactiveViewModel {
       title: 'Deleted workout',
       message: _workout.name,
       duration: Duration(seconds: 1),
-      mainButtonTitle: 'Undo',
-      onMainButtonTapped: () async => await saveWorkout(),
     );
     notifyListeners();
 

@@ -1,4 +1,4 @@
-library new_workout_page;
+library new_workout_view;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';

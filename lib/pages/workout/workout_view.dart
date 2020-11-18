@@ -1,4 +1,4 @@
-library workout_page;
+library workout_view;
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -30,7 +30,7 @@ class WorkoutView extends StatelessWidget {
         return ScreenTypeLayout.builder(
           mobile: (BuildContext context) => _WorkoutViewMobile(),
           desktop: (BuildContext context) => _WorkoutViewDesktop(),
-        );
+        ).isBusy(model.isBusy, Theme.of(context));
       },
     );
   }

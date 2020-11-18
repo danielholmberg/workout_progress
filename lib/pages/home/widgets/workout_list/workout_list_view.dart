@@ -5,11 +5,11 @@ import 'package:intl/intl.dart';
 import 'package:stacked/stacked.dart';
 import 'package:workout_progress/models/exercise_model.dart';
 import 'package:workout_progress/models/workout_model.dart';
-import 'package:workout_progress/pages/home/widgets/workout_list_view_model.dart';
+import 'package:workout_progress/pages/home/widgets/workout_list/workout_list_view_model.dart';
 import 'package:workout_progress/shared/constants.dart';
 import 'package:workout_progress/shared/widgets/custom_awesome_icon.dart';
 
-import '../../../shared/extensions.dart';
+import '../../../../shared/extensions.dart';
 
 class WorkoutList extends ViewModelWidget<WorkoutsViewModel> {
   const WorkoutList({Key key}) : super(key: key);
@@ -20,7 +20,6 @@ class WorkoutList extends ViewModelWidget<WorkoutsViewModel> {
 
     Widget _buildWorkoutItem(Workout workout) {
       return Card(
-        elevation: 4.0,
         child: ExpansionTile(
           tilePadding: const EdgeInsets.symmetric(horizontal: defaultPadding),
           trailing: ButtonBar(
@@ -106,6 +105,7 @@ class WorkoutList extends ViewModelWidget<WorkoutsViewModel> {
             (index) {
               Exercise exercise = model.getExercise(workout.exercises[index]);
               return ListTile(
+                enabled: false,
                 title: Text(
                   model.getBaseExercise(exercise.baseExerciseId).name,
                 ),

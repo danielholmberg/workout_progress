@@ -33,6 +33,8 @@ class FirebaseFirestoreService with ReactiveServiceMixin {
       RxValue<Map<String, Exercise>>(initial: {});
   final RxValue<Map<String, ExerciseSet>> _exerciseSets =
       RxValue<Map<String, ExerciseSet>>(initial: {});
+  final RxValue<Map<String, List<ExerciseSet>>> _completedSets =
+      RxValue<Map<String, List<ExerciseSet>>>(initial: {});
 
   FirebaseFirestoreService() {
     listenToReactiveValues([
@@ -40,6 +42,7 @@ class FirebaseFirestoreService with ReactiveServiceMixin {
       _workouts,
       _exercises,
       _exerciseSets,
+      _completedSets,
     ]);
   }
 
@@ -47,14 +50,20 @@ class FirebaseFirestoreService with ReactiveServiceMixin {
   Map<String, Workout> get workouts => _workouts.value;
   Map<String, Exercise> get exercises => _exercises.value;
   Map<String, ExerciseSet> get exerciseSets => _exerciseSets.value;
+  Map<String, List<ExerciseSet>> get completedSets => _completedSets.value;
+
+  StreamSubscription get baseExerciseStreamSub => _baseExercisesStreamSub;
+  StreamSubscription get workoutsStreamSub => _workoutsStreamSub;
+  StreamSubscription get exercisesStreamSub => _exercisesStreamSub;
+  StreamSubscription get exerciseSetsStreamSub => _exerciseSetsStreamSub;
 
   // User specific
   CollectionReference get workoutsRef =>
       _usersRef.doc(authService.currentUser.id).collection('workouts');
   CollectionReference get exercisesRef =>
       _usersRef.doc(authService.currentUser.id).collection('exercises');
-  CollectionReference get setsRef =>
-      _usersRef.doc(authService.currentUser.id).collection('sets');
+  CollectionReference get exerciseSetsRef =>
+      _usersRef.doc(authService.currentUser.id).collection('exerciseSets');
   CollectionReference get musclesRef =>
       _usersRef.doc(authService.currentUser.id).collection('muscles');
   CollectionReference get bodyPartsRef =>
@@ -62,7 +71,7 @@ class FirebaseFirestoreService with ReactiveServiceMixin {
 
   String get newWorkoutId => workoutsRef.doc().id;
   String get newExerciseId => exercisesRef.doc().id;
-  String get newExerciseSetId => setsRef.doc().id;
+  String get newExerciseSetId => exerciseSetsRef.doc().id;
 
   setUpListeners() {
     print('Setting up Firestore listeners...');
@@ -84,19 +93,22 @@ class FirebaseFirestoreService with ReactiveServiceMixin {
                 baseExercises.remove(baseExercise.id);
               }
             } else {
-              if (docChange.type == DocumentChangeType.modified)
+              if (docChange.type == DocumentChangeType.modified) {
                 print(
-                    'Base Exercise (${baseExercise.id})[${baseExercise.name}] modified!');
-              if (docChange.type == DocumentChangeType.added)
+                  'Base Exercise (${baseExercise.id})[${baseExercise.name}] modified!',
+                );
+              } else if (docChange.type == DocumentChangeType.added) {
                 print(
-                    'Base Exercise (${baseExercise.id})[${baseExercise.name}] added!');
+                  'Base Exercise (${baseExercise.id})[${baseExercise.name}] added!',
+                );
+              }
 
               baseExercises.update(baseExercise.id, (be) => baseExercise,
                   ifAbsent: () => baseExercise);
             }
-            notifyListeners();
           },
         );
+        notifyListeners();
       },
     );
 
@@ -117,17 +129,18 @@ class FirebaseFirestoreService with ReactiveServiceMixin {
                 workouts.remove(workout.id);
               }
             } else {
-              if (docChange.type == DocumentChangeType.modified)
+              if (docChange.type == DocumentChangeType.modified) {
                 print('Workout (${workout.id})[${workout.name}] modified!');
-              if (docChange.type == DocumentChangeType.added)
+              } else if (docChange.type == DocumentChangeType.added) {
                 print('Workout (${workout.id})[${workout.name}] added!');
+              }
 
               workouts.update(workout.id, (w) => workout,
                   ifAbsent: () => workout);
             }
-            notifyListeners();
           },
         );
+        notifyListeners();
       },
     );
 
@@ -148,22 +161,23 @@ class FirebaseFirestoreService with ReactiveServiceMixin {
                 exercises.remove(exercise.id);
               }
             } else {
-              if (docChange.type == DocumentChangeType.modified)
+              if (docChange.type == DocumentChangeType.modified) {
                 print('Exercise (${exercise.id}) modified!');
-              if (docChange.type == DocumentChangeType.added)
+              } else if (docChange.type == DocumentChangeType.added) {
                 print('Exercise (${exercise.id}) added!');
+              }
 
               exercises.update(exercise.id, (e) => exercise,
                   ifAbsent: () => exercise);
             }
-            notifyListeners();
           },
         );
+        notifyListeners();
       },
     );
 
     // Exercise Sets
-    _exerciseSetsStreamSub = setsRef
+    _exerciseSetsStreamSub = exerciseSetsRef
         .orderBy(
           ExerciseSet.indexKey,
         )
@@ -178,20 +192,47 @@ class FirebaseFirestoreService with ReactiveServiceMixin {
               if (exerciseSets.containsKey(exerciseSet.id)) {
                 exerciseSets.remove(exerciseSet.id);
               }
+
+              if (exerciseSet.isCompleted) {
+                removeCompletedExerciseSet(exerciseSet);
+              }
             } else {
-              if (docChange.type == DocumentChangeType.modified)
+              if (docChange.type == DocumentChangeType.modified) {
                 print(
-                    'Exercise Set (${exerciseSet.id})[${exerciseSet.exerciseId}] modified!');
-              if (docChange.type == DocumentChangeType.added)
+                  'Exercise Set (${exerciseSet.id})[${exerciseSet.exerciseId}] modified! [completed: ${exerciseSet.isCompleted}]',
+                );
+                if (!exerciseSet.isCompleted) {
+                  removeCompletedExerciseSet(exerciseSet);
+                }
+              } else if (docChange.type == DocumentChangeType.added) {
                 print(
-                    'Exercise Set (${exerciseSet.id})[${exerciseSet.exerciseId}] added!');
+                  'Exercise Set (${exerciseSet.id})[${exerciseSet.exerciseId}] added! [completed: ${exerciseSet.isCompleted}]',
+                );
+              }
 
               exerciseSets.update(exerciseSet.id, (es) => exerciseSet,
                   ifAbsent: () => exerciseSet);
+
+              if (exerciseSet.isCompleted) {
+                completedSets.putIfAbsent(exerciseSet.baseExerciseId, () => []);
+
+                print(
+                  'Adding (${exerciseSet.id}) to completed-list for BaseExercise(${exerciseSet.baseExerciseId})!',
+                );
+
+                completedSets.update(
+                  exerciseSet.baseExerciseId,
+                  (list) {
+                    list.add(exerciseSet);
+                    return list;
+                  },
+                  ifAbsent: () => [exerciseSet],
+                );
+              }
             }
-            notifyListeners();
           },
         );
+        notifyListeners();
       },
     );
     print('Success!');
@@ -229,15 +270,29 @@ class FirebaseFirestoreService with ReactiveServiceMixin {
       Workout.exercisesKey: exercises,
       Workout.startTimeAndDateKey: FieldValue.serverTimestamp(),
       Workout.createdKey: FieldValue.serverTimestamp(),
-    });
+    }).then(
+      (value) => print('Created Workout($id)'),
+      onError: (error) => print('Error creating Workout($id): $error'),
+    );
   }
 
   Future saveWorkout(Workout workout) {
-    return workoutsRef.doc(workout.id).set(workout.toDocument());
+    return workoutsRef.doc(workout.id).set(workout.toDocument()).then(
+          (value) => print('Saved Workout(${workout.id})'),
+          onError: (error) =>
+              print('Error saving Workout(${workout.id}): $error'),
+        );
   }
 
-  Future deleteWorkout(Workout workout) {
-    return workoutsRef.doc(workout.id).delete();
+  Future deleteWorkout(Workout workout) async {
+    for (String exerciseId in workout.exercises) {
+      await deleteExercise(exerciseId);
+    }
+    return workoutsRef.doc(workout.id).delete().then(
+          (value) => print('Deleted Workout(${workout.id})'),
+          onError: (error) =>
+              print('Error deleting Workout(${workout.id}): $error'),
+        );
   }
 
   List<Workout> getAllWorkouts() {
@@ -251,11 +306,46 @@ class FirebaseFirestoreService with ReactiveServiceMixin {
   // --------------- Exercise ---------------
 
   Future createExercise(Exercise newExercise) {
-    return exercisesRef.doc(newExercise.id).set(newExercise.toDocument());
+    return exercisesRef.doc(newExercise.id).set(newExercise.toDocument()).then(
+          (value) => print('Created Exercise(${newExercise.id})'),
+          onError: (error) =>
+              print('Error creating Exercise(${newExercise.id}): $error'),
+        );
   }
 
-  Future saveExercise(Exercise exercise) {
-    return exercisesRef.doc(exercise.id).set(exercise.toDocument());
+  Future saveExercise(Exercise exercise) async {
+    if (exercise.setsToCreate.isNotEmpty) {
+      await saveExerciseSets(exercise.setsToCreate.values.toList());
+      exercise.setsToCreate.clear();
+    }
+
+    for(String exerciseSetId in exercise.sets) {
+      ExerciseSet exerciseSet = exerciseSets[exerciseSetId];
+      await saveExerciseSet(exerciseSet);
+    }
+
+    return exercisesRef.doc(exercise.id).set(exercise.toDocument()).then(
+          (value) => print('Saved Exercise(${exercise.id})'),
+          onError: (error) =>
+              print('Error saving Exercise(${exercise.id}): $error'),
+        );
+  }
+
+  Future saveExercises(List<Exercise> exerciseList) async {
+    for (Exercise exercise in exerciseList) {
+      await saveExercise(exercise);
+    }
+  }
+
+  Future deleteExercise(String exerciseId) async {
+    Exercise exerciseToDelete = getExercise(exerciseId);
+    if (exerciseToDelete != null) {
+      for (String exerciseSetId in exerciseToDelete.sets) {
+        await deleteExerciseSet(exerciseSetId);
+      }
+    } else {
+      print('Error deleting Exercise($exerciseId): Exercise doesn\'t exist');
+    }
   }
 
   List<Exercise> getAllExercises() {
@@ -276,12 +366,29 @@ class FirebaseFirestoreService with ReactiveServiceMixin {
 
   // --------------- ExerciseSet ---------------
 
-  Future createExerciseSet(ExerciseSet exerciseSet) {
-    return setsRef.doc(exerciseSet.id).set(exerciseSet.toDocument());
+  Future saveExerciseSet(ExerciseSet exerciseSet) {
+    return exerciseSetsRef
+        .doc(exerciseSet.id)
+        .set(exerciseSet.toDocument())
+        .then(
+          (value) => print('Saved ExerciseSet(${exerciseSet.id})'),
+          onError: (error) =>
+              print('Error saving ExerciseSet(${exerciseSet.id}): $error'),
+        );
   }
 
-  Future saveExerciseSet(ExerciseSet exerciseSet) {
-    return setsRef.doc(exerciseSet.id).set(exerciseSet.toDocument());
+  Future saveExerciseSets(List<ExerciseSet> exerciseSetList) async {
+    for (ExerciseSet exerciseSet in exerciseSetList) {
+      await saveExerciseSet(exerciseSet);
+    }
+  }
+
+  Future deleteExerciseSet(String exerciseSetId) async {
+    return exerciseSetsRef.doc(exerciseSetId).delete().then(
+          (value) => print('Deleted ExerciseSet($exerciseSetId)'),
+          onError: (error) =>
+              print('Error deleting ExerciseSet($exerciseSetId): $error'),
+        );
   }
 
   List<ExerciseSet> getAllExerciseSets(String exerciseId) {
@@ -304,15 +411,37 @@ class FirebaseFirestoreService with ReactiveServiceMixin {
     return exerciseSets[id];
   }
 
+  List<ExerciseSet> getCompletedExerciseSets(String baseExerciseId) {
+    return exerciseSets.values.where((exerciseSet) => exerciseSet.isCompleted);
+  }
+
+  void removeCompletedExerciseSet(ExerciseSet exerciseSet) {
+    List<ExerciseSet> exerciseSetList =
+        completedSets[exerciseSet.baseExerciseId];
+    if (exerciseSetList != null) {
+      exerciseSetList.removeWhere((e) => e.id.compareTo(exerciseSet.id) == 0);
+    }
+  }
+
   // --------------- User ---------------
 
-  void createUserDocument({
+  Future createUserDocument({
     @required String id,
     @required String name,
     @required String email,
-  }) =>
-      _usersRef.doc(id).set(
-          {'id': id, 'name': name, 'email': email}, SetOptions(merge: true));
+  }) {
+    final userData = {'id': id, 'name': name, 'email': email};
+    return _usersRef
+        .doc(id)
+        .set(
+          userData,
+          SetOptions(merge: true),
+        )
+        .then(
+          (value) => print('Created User($userData)'),
+          onError: (error) => print('Error saving User($userData): $error'),
+        );
+  }
 
   Future<bool> doesUserDocExist(String id) async {
     DocumentSnapshot userDoc = await _usersRef.doc(id).get();

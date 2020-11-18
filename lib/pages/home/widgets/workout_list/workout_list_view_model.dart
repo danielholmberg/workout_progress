@@ -6,8 +6,8 @@ import 'package:workout_progress/models/workout_model.dart';
 import 'package:workout_progress/services/firebase/firestore.dart';
 import 'package:workout_progress/services/util_service.dart';
 
-import '../../../locator.dart';
-import '../../../router.dart';
+import '../../../../locator.dart';
+import '../../../../router.dart';
 
 class WorkoutsViewModel extends ReactiveViewModel {
   final FirebaseFirestoreService _dbService =
